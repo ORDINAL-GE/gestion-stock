@@ -3,44 +3,80 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#151816" />
-  <meta name="description" content="Lecture mobile des QR codes Article de l'application Stock." />
-  <title>Stock - QR Article</title>
+  <meta name="theme-color" content="#f4f2f4" />
+  <meta name="description" content="Test mobile du parcours Menu et Réserver de l'application Stock." />
+  <title>Stock - Réserver</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <main class="scanner-shell" aria-labelledby="screen-title">
-    <header class="topbar">
-      <button id="close-button" class="text-button" type="button">Fermer</button>
-      <h1 id="screen-title">Scanner un article</h1><span aria-hidden="true"></span>
-    </header>
-    <section id="camera-panel" class="camera-panel" aria-label="Lecteur de QR code Article">
-      <div id="reader" class="reader" aria-hidden="true"></div>
-      <div id="idle-state" class="state-card">
-        <div class="qr-symbol" aria-hidden="true"><span></span><span></span><span></span></div>
-        <h2>QR de l'article</h2>
-        <p>Cadrez le QR code dans le viseur. La caméra arrière sera utilisée.</p>
-        <button id="start-button" class="primary-button" type="button">Ouvrir la caméra</button>
-        <button id="photo-button" class="secondary-button" type="button">Choisir une photo</button>
+  <main class="app-shell">
+    <section id="menu-screen" class="screen menu-screen" aria-labelledby="menu-title">
+      <div class="brand" aria-hidden="true">
+        <span class="brand-mark">S</span>
+        <div><strong>STOCK</strong><small>Gestion des plaques</small></div>
+      </div>
+      <h1 id="menu-title">Menu</h1>
+      <nav class="menu-actions" aria-label="Actions du stock">
+        <button id="reserve-button" class="menu-button primary-menu-button" type="button">Réserver</button>
+        <button class="menu-button" type="button" disabled>Déplacer</button>
+        <button class="menu-button" type="button" disabled>Consommer</button>
+      </nav>
+      <p class="menu-hint">Les fonctions Déplacer et Consommer seront disponibles ultérieurement.</p>
+      <p class="version">Version web de test</p>
+    </section>
+
+    <section id="reserve-screen" class="screen reserve-screen" hidden aria-labelledby="reserve-title">
+      <header class="action-bar">
+        <button id="reserve-ok-button" class="bar-button" type="button">OK</button>
+        <h1 id="reserve-title">Réserver</h1>
+        <span aria-hidden="true"></span>
+      </header>
+      <div class="reserve-content">
+        <button id="scan-button" class="scan-button" type="button">Scan</button>
+        <p id="scan-notice" class="scan-notice" hidden></p>
+
+        <section id="article-slot" class="result-slot" aria-labelledby="article-label">
+          <p id="article-label" class="slot-label">Article</p>
+          <p id="article-value" class="slot-value empty">Article non scanné</p>
+        </section>
+
+        <p class="assignment-label">Attribué à</p>
+        <section id="client-slot" class="result-slot" aria-labelledby="client-label">
+          <p id="client-label" class="slot-label">Client</p>
+          <p id="client-value" class="slot-value empty">Client non scanné</p>
+        </section>
+      </div>
+    </section>
+
+    <section id="camera-screen" class="screen camera-screen" hidden aria-labelledby="camera-title">
+      <header class="camera-bar">
+        <button id="camera-back-button" class="bar-button light" type="button">Retour</button>
+        <h1 id="camera-title">Scanner</h1>
+        <span aria-hidden="true"></span>
+      </header>
+      <div class="camera-panel">
+        <div id="reader" class="reader" aria-hidden="true"></div>
+        <div id="camera-fallback" class="camera-fallback" hidden>
+          <div class="qr-symbol" aria-hidden="true"><span></span><span></span><span></span></div>
+          <h2>Lecture du QR</h2>
+          <p id="camera-message">Cadrez un QR Article ou Client.</p>
+          <button id="retry-button" class="camera-action" type="button">Réessayer la caméra</button>
+          <button id="photo-button" class="camera-action secondary" type="button">Choisir une photo</button>
+        </div>
+        <div id="scan-overlay" class="scan-overlay" hidden aria-hidden="true">
+          <div class="viewfinder">
+            <span class="corner top-left"></span><span class="corner top-right"></span>
+            <span class="corner bottom-left"></span><span class="corner bottom-right"></span>
+            <span class="scan-line"></span>
+          </div>
+          <p>QR Article ou Client</p>
+        </div>
+        <button id="torch-button" class="torch-button" type="button" hidden aria-pressed="false">Torche</button>
+        <button id="camera-photo-button" class="photo-shortcut" type="button">Photo</button>
         <input id="photo-input" type="file" accept="image/*" capture="environment" hidden />
       </div>
-      <div id="scan-overlay" class="scan-overlay" hidden aria-hidden="true">
-        <div class="viewfinder">
-          <span class="corner top-left"></span><span class="corner top-right"></span>
-          <span class="corner bottom-left"></span><span class="corner bottom-right"></span>
-          <span class="scan-line"></span>
-        </div>
-        <p>Placez le QR Article dans le cadre</p>
-      </div>
-      <button id="torch-button" class="torch-button" type="button" hidden aria-pressed="false">Torche</button>
     </section>
-    <section id="result-panel" class="result-panel" hidden aria-live="polite">
-      <div id="result-icon" class="result-icon" aria-hidden="true">✓</div>
-      <p id="result-eyebrow" class="result-eyebrow">QR Article reconnu</p>
-      <h2 id="article-id">Article</h2><p id="result-message" class="result-message"></p>
-      <dl id="article-details" class="entity-details" hidden></dl>
-      <button id="scan-again-button" class="primary-button" type="button">Scanner un autre article</button>
-    </section>
+
     <p id="status" class="sr-only" role="status" aria-live="polite"></p>
   </main>
   <script src="./vendor/html5-qrcode.min.js"></script>

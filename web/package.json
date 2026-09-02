@@ -1,6 +1,6 @@
 {
-  "name": "stock-qr-article",
+  "name": "stock-reservation-qr",
   "private": true,
   "type": "module",
-  "scripts": { "test": "node --test tests/qr-article.test.mjs" }
+  "scripts": { "test": "node --test tests/qr-stock.test.mjs" }
 }

@@ -1,36 +1,30 @@
-# Stock - étape 3 : lecture du QR Article
+# Stock - test du parcours Réserver
 
-Cette page mobile teste le décodage WINDEV du QR Article avec une implémentation HTML/JavaScript.
+La page reproduit le cycle mobile prévu pour l'application Stock :
 
-## Format reconnu
+1. l'ouverture HTTPS affiche le menu ;
+2. seul le bouton `Réserver` est actif ;
+3. `Réserver` ouvre directement la caméra ;
+4. un QR `Article` renseigne le cadre supérieur ;
+5. un QR `Client` renseigne le cadre inférieur ;
+6. le bouton `Scan` permet de recommencer sans limite et remplace uniquement la valeur du même type.
 
-Le format repris de `Documentation_Stock.pdf` est composé de deux lignes :
+## Formats reconnus
 
 ```text
 Article
 9119
 ```
 
-Les séparateurs CR, LF et CRLF sont acceptés. Le type doit être `Article` et l'identifiant doit être un entier positif. Les exemples fournis correspondent aux articles `9119`, `12979` et `361`.
+```text
+Client
+244048
+```
+
+Les séparateurs CR, LF et CRLF sont acceptés. Le type doit être `Article` ou `Client` et l'identifiant doit être un entier positif.
 
 ## Utilisation
 
-Servir le dossier `web` en HTTPS, puis ouvrir `index.html` depuis Safari sur iOS ou Chrome, Firefox ou Edge sur Android. L'accès caméra Web est refusé par les navigateurs mobiles si la page n'est pas en HTTPS (hors `localhost`).
+Servir le dossier `web` en HTTPS, puis ouvrir `index.html` depuis Safari sur iOS ou Chrome, Firefox ou Edge sur Android. La lecture depuis une photo reste disponible comme solution de repli.
 
-La lecture depuis une photo est disponible comme solution de repli et reste entièrement locale dans le navigateur.
-
-## Connexion future aux données Article
-
-La lecture du QR fonctionne sans serveur et retourne l'ID Article. Pour afficher les informations HFSQL, charger avant `app.js` une configuration équivalente à `config.example.js`. L'URL peut contenir `{id}` et doit retourner du JSON :
-
-```json
-{
-  "matiere": "Azul macaubas (Q)",
-  "finition": "Polie",
-  "dimensions": "215 x 147 x 2",
-  "fournisseur": "Fournisseur",
-  "facture": "Facture"
-}
-```
-
-Il ne faut pas exposer directement les identifiants HFSQL dans le JavaScript du navigateur : l'accès doit passer par une API HTTPS côté serveur.
+Cette étape ne consulte pas encore HFSQL : seuls le type et l'identifiant lus dans le QR sont affichés. Les informations détaillées et les actions de validation seront ajoutées avec l'API de données.
