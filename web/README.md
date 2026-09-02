@@ -1,17 +1,17 @@
-# Stock - étape 2 : lecture du QR Client
+# Stock - étape 3 : lecture du QR Article
 
-Cette page mobile remplace le décodage WINDEV du QR Client par une implémentation HTML/JavaScript.
+Cette page mobile teste le décodage WINDEV du QR Article avec une implémentation HTML/JavaScript.
 
 ## Format reconnu
 
 Le format repris de `Documentation_Stock.pdf` est composé de deux lignes :
 
 ```text
-Client
-244048
+Article
+9119
 ```
 
-Les séparateurs CR, LF et CRLF sont acceptés. Le type doit être `Client` et l'identifiant doit être un entier positif.
+Les séparateurs CR, LF et CRLF sont acceptés. Le type doit être `Article` et l'identifiant doit être un entier positif. Les exemples fournis correspondent aux articles `9119`, `12979` et `361`.
 
 ## Utilisation
 
@@ -19,16 +19,17 @@ Servir le dossier `web` en HTTPS, puis ouvrir `index.html` depuis Safari sur iOS
 
 La lecture depuis une photo est disponible comme solution de repli et reste entièrement locale dans le navigateur.
 
-## Connexion future aux données Client
+## Connexion future aux données Article
 
-La lecture du QR fonctionne sans serveur et retourne l'ID Client. Pour afficher les informations HFSQL, charger avant `app.js` une configuration équivalente à `config.example.js`. L'URL peut contenir `{id}` et doit retourner du JSON :
+La lecture du QR fonctionne sans serveur et retourne l'ID Article. Pour afficher les informations HFSQL, charger avant `app.js` une configuration équivalente à `config.example.js`. L'URL peut contenir `{id}` et doit retourner du JSON :
 
 ```json
 {
-  "client": "Nom de l'entreprise",
-  "clientFinal": "Nom du client final",
-  "chantier": "Nom du chantier",
-  "ordre": 123
+  "matiere": "Azul macaubas (Q)",
+  "finition": "Polie",
+  "dimensions": "215 x 147 x 2",
+  "fournisseur": "Fournisseur",
+  "facture": "Facture"
 }
 ```
 

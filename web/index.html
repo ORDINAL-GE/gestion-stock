@@ -4,21 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#151816" />
-  <meta name="description" content="Lecture mobile des QR codes Client de l'application Stock." />
-  <title>Stock - QR Client</title>
+  <meta name="description" content="Lecture mobile des QR codes Article de l'application Stock." />
+  <title>Stock - QR Article</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <main class="scanner-shell" aria-labelledby="screen-title">
     <header class="topbar">
       <button id="close-button" class="text-button" type="button">Fermer</button>
-      <h1 id="screen-title">Scanner un client</h1><span aria-hidden="true"></span>
+      <h1 id="screen-title">Scanner un article</h1><span aria-hidden="true"></span>
     </header>
-    <section id="camera-panel" class="camera-panel" aria-label="Lecteur de QR code Client">
+    <section id="camera-panel" class="camera-panel" aria-label="Lecteur de QR code Article">
       <div id="reader" class="reader" aria-hidden="true"></div>
       <div id="idle-state" class="state-card">
         <div class="qr-symbol" aria-hidden="true"><span></span><span></span><span></span></div>
-        <h2>QR du client</h2>
+        <h2>QR de l'article</h2>
         <p>Cadrez le QR code dans le viseur. La caméra arrière sera utilisée.</p>
         <button id="start-button" class="primary-button" type="button">Ouvrir la caméra</button>
         <button id="photo-button" class="secondary-button" type="button">Choisir une photo</button>
@@ -30,16 +30,16 @@
           <span class="corner bottom-left"></span><span class="corner bottom-right"></span>
           <span class="scan-line"></span>
         </div>
-        <p>Placez le QR Client dans le cadre</p>
+        <p>Placez le QR Article dans le cadre</p>
       </div>
       <button id="torch-button" class="torch-button" type="button" hidden aria-pressed="false">Torche</button>
     </section>
     <section id="result-panel" class="result-panel" hidden aria-live="polite">
       <div id="result-icon" class="result-icon" aria-hidden="true">✓</div>
-      <p id="result-eyebrow" class="result-eyebrow">QR Client reconnu</p>
-      <h2 id="client-id">Client</h2><p id="result-message" class="result-message"></p>
-      <dl id="client-details" class="client-details" hidden></dl>
-      <button id="scan-again-button" class="primary-button" type="button">Scanner un autre client</button>
+      <p id="result-eyebrow" class="result-eyebrow">QR Article reconnu</p>
+      <h2 id="article-id">Article</h2><p id="result-message" class="result-message"></p>
+      <dl id="article-details" class="entity-details" hidden></dl>
+      <button id="scan-again-button" class="primary-button" type="button">Scanner un autre article</button>
     </section>
     <p id="status" class="sr-only" role="status" aria-live="polite"></p>
   </main>

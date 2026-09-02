@@ -1,5 +1,5 @@
-import { ClientQrError, parseClientQr } from "./qr-client.js";
-const el = Object.fromEntries([["cameraPanel","#camera-panel"],["reader","#reader"],["idle","#idle-state"],["overlay","#scan-overlay"],["result","#result-panel"],["resultIcon","#result-icon"],["resultEyebrow","#result-eyebrow"],["clientId","#client-id"],["resultMessage","#result-message"],["clientDetails","#client-details"],["start","#start-button"],["photo","#photo-button"],["photoInput","#photo-input"],["scanAgain","#scan-again-button"],["close","#close-button"],["torch","#torch-button"],["status","#status"]].map(([key,selector])=>[key,document.querySelector(selector)]));
+import { ArticleQrError, parseArticleQr } from "./qr-article.js";
+const el = Object.fromEntries([["cameraPanel","#camera-panel"],["reader","#reader"],["idle","#idle-state"],["overlay","#scan-overlay"],["result","#result-panel"],["resultIcon","#result-icon"],["resultEyebrow","#result-eyebrow"],["articleId","#article-id"],["resultMessage","#result-message"],["articleDetails","#article-details"],["start","#start-button"],["photo","#photo-button"],["photoInput","#photo-input"],["scanAgain","#scan-again-button"],["close","#close-button"],["torch","#torch-button"],["status","#status"]].map(([key,selector])=>[key,document.querySelector(selector)]));
 let scanner, scannerRunning=false, handlingResult=false, torchEnabled=false;
 const announce=(message)=>{el.status.textContent=message;};
 function getScanner(){
@@ -18,7 +18,7 @@ async function startScanner(){
   try{
     const qrScanner=getScanner();el.idle.hidden=true;el.overlay.hidden=false;el.reader.setAttribute("aria-hidden","false");
     await qrScanner.start({facingMode:"environment"},{fps:10,qrbox:qrBoxSize,aspectRatio:3/4,disableFlip:false},handleDecodedValue,()=>{});
-    scannerRunning=true;announce("Caméra ouverte. Placez le QR Client dans le cadre.");
+    scannerRunning=true;announce("Caméra ouverte. Placez le QR Article dans le cadre.");
     try{el.torch.hidden=scanner.getRunningTrackCapabilities()?.torch!==true;}catch{el.torch.hidden=true;}
   }catch(error){
     scannerRunning=false;el.idle.hidden=false;el.overlay.hidden=true;el.reader.setAttribute("aria-hidden","true");
@@ -29,37 +29,37 @@ async function startScanner(){
 }
 async function handleDecodedValue(decodedText){
   if(handlingResult)return;handlingResult=true;await stopScanner();
-  try{const clientQr=parseClientQr(decodedText);navigator.vibrate?.(120);await showClientResult(clientQr);}
+  try{const articleQr=parseArticleQr(decodedText);navigator.vibrate?.(120);await showArticleResult(articleQr);}
   catch(error){navigator.vibrate?.([70,50,70]);showErrorResult(error,decodedText);}
 }
-async function lookupClient(id){
-  const template=window.STOCK_CONFIG?.clientLookupUrl;if(!template)return null;
+async function lookupArticle(id){
+  const template=window.STOCK_CONFIG?.articleLookupUrl;if(!template)return null;
   const response=await fetch(template.replace("{id}",encodeURIComponent(String(id))),{headers:{Accept:"application/json"}});
-  if(response.status===404)throw new ClientQrError("not-found","Ce client n'est plus enregistré dans le stock.");
-  if(!response.ok)throw new Error("Le service Client est momentanément indisponible.");
+  if(response.status===404)throw new ArticleQrError("not-found","Cet article n'est plus en stock.");
+  if(!response.ok)throw new Error("Le service Article est momentanément indisponible.");
   return response.json();
 }
-async function showClientResult(clientQr){
-  el.cameraPanel.hidden=true;el.result.hidden=false;el.resultIcon.classList.remove("error");el.resultIcon.textContent="✓";el.resultEyebrow.textContent="QR Client reconnu";el.clientId.textContent=`Client N° ${clientQr.id}`;el.resultMessage.textContent="Le type et l'identifiant du QR ont été lus avec succès.";el.clientDetails.hidden=true;el.clientDetails.replaceChildren();announce(`QR Client ${clientQr.id} reconnu.`);
-  try{const client=await lookupClient(clientQr.id);if(client)renderClientDetails(client);}catch(error){showErrorResult(error);}
+async function showArticleResult(articleQr){
+  el.cameraPanel.hidden=true;el.result.hidden=false;el.resultIcon.classList.remove("error");el.resultIcon.textContent="✓";el.resultEyebrow.textContent="QR Article reconnu";el.articleId.textContent=`Article N° ${articleQr.id}`;el.resultMessage.textContent="Le type et l'identifiant du QR ont été lus avec succès.";el.articleDetails.hidden=true;el.articleDetails.replaceChildren();announce(`QR Article ${articleQr.id} reconnu.`);
+  try{const article=await lookupArticle(articleQr.id);if(article)renderArticleDetails(article);}catch(error){showErrorResult(error);}
 }
-function renderClientDetails(client){
-  const fields=[["Entreprise",client.client??client.nom],["Client final",client.clientFinal],["Chantier",client.chantier],["Ordre N°",client.ordre]].filter(([,value])=>value!==undefined&&value!==null&&value!=="");
+function renderArticleDetails(article){
+  const fields=[["Matière",article.matiere??article.matière],["Finition",article.finition],["Dimensions",article.dimensions],["Fournisseur",article.fournisseur],["Facture",article.facture]].filter(([,value])=>value!==undefined&&value!==null&&value!=="");
   if(!fields.length)return;const fragment=document.createDocumentFragment();
   for(const[label,value]of fields){const row=document.createElement("div"),dt=document.createElement("dt"),dd=document.createElement("dd");dt.textContent=label;dd.textContent=String(value);row.append(dt,dd);fragment.append(row);}
-  el.clientDetails.append(fragment);el.clientDetails.hidden=false;el.resultMessage.textContent="Client retrouvé dans le stock.";
+  el.articleDetails.append(fragment);el.articleDetails.hidden=false;el.resultMessage.textContent="Article retrouvé dans le stock.";
 }
 function showErrorResult(error,rawValue=""){
-  const message=error instanceof Error?error.message:"QR code illisible.";el.cameraPanel.hidden=true;el.result.hidden=false;el.resultIcon.classList.add("error");el.resultIcon.textContent="!";el.resultEyebrow.textContent="Lecture refusée";el.clientId.textContent="QR non valide";el.resultMessage.textContent=rawValue?`${message}\n\nContenu lu : ${JSON.stringify(rawValue)}`:message;el.clientDetails.hidden=true;el.clientDetails.replaceChildren();announce(message);
+  const message=error instanceof Error?error.message:"QR code illisible.";el.cameraPanel.hidden=true;el.result.hidden=false;el.resultIcon.classList.add("error");el.resultIcon.textContent="!";el.resultEyebrow.textContent="Lecture refusée";el.articleId.textContent="QR non valide";el.resultMessage.textContent=rawValue?`${message}\n\nContenu lu : ${JSON.stringify(rawValue)}`:message;el.articleDetails.hidden=true;el.articleDetails.replaceChildren();announce(message);
 }
 async function scanPhoto(file){
   if(!file)return;el.photo.disabled=true;announce("Analyse de la photo.");
   try{await stopScanner();await handleDecodedValue(await getScanner().scanFile(file,true));}
-  catch(error){showErrorResult(error instanceof ClientQrError?error:new ClientQrError("unreadable","Aucun QR code lisible n'a été trouvé dans cette photo."));}
+  catch(error){showErrorResult(error instanceof ArticleQrError?error:new ArticleQrError("unreadable","Aucun QR code lisible n'a été trouvé dans cette photo."));}
   finally{el.photo.disabled=false;el.photoInput.value="";}
 }
-async function resetScanner(){await stopScanner();handlingResult=false;el.result.hidden=true;el.cameraPanel.hidden=false;el.idle.hidden=false;el.reader.setAttribute("aria-hidden","true");announce("Prêt à scanner un QR Client.");}
+async function resetScanner(){await stopScanner();handlingResult=false;el.result.hidden=true;el.cameraPanel.hidden=false;el.idle.hidden=false;el.reader.setAttribute("aria-hidden","true");announce("Prêt à scanner un QR Article.");}
 el.start.addEventListener("click",startScanner);el.photo.addEventListener("click",()=>el.photoInput.click());el.photoInput.addEventListener("change",()=>scanPhoto(el.photoInput.files?.[0]));el.scanAgain.addEventListener("click",resetScanner);
 el.close.addEventListener("click",async()=>{await stopScanner();history.length>1?history.back():resetScanner();});
 el.torch.addEventListener("click",async()=>{try{torchEnabled=!torchEnabled;await scanner.applyVideoConstraints({advanced:[{torch:torchEnabled}]});el.torch.setAttribute("aria-pressed",String(torchEnabled));el.torch.textContent=torchEnabled?"Torche allumée":"Torche";}catch{torchEnabled=false;el.torch.hidden=true;}});
-document.addEventListener("visibilitychange",()=>{if(document.hidden)stopScanner();});window.addEventListener("pagehide",stopScanner);announce("Prêt à scanner un QR Client.");
+document.addEventListener("visibilitychange",()=>{if(document.hidden)stopScanner();});window.addEventListener("pagehide",stopScanner);announce("Prêt à scanner un QR Article.");

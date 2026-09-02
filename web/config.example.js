@@ -1,2 +1,2 @@
-// Facultatif : branche la lecture QR sur une API Client existante.
-window.STOCK_CONFIG = { clientLookupUrl: "/api/clients/{id}" };
+// Facultatif : branche la lecture QR sur une API Article existante.
+window.STOCK_CONFIG = { articleLookupUrl: "/api/articles/{id}" };
