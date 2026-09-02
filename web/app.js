@@ -30,7 +30,7 @@ async function startScanner(){
 async function handleDecodedValue(decodedText){
   if(handlingResult)return;handlingResult=true;await stopScanner();
   try{const clientQr=parseClientQr(decodedText);navigator.vibrate?.(120);await showClientResult(clientQr);}
-  catch(error){navigator.vibrate?.([70,50,70]);showErrorResult(error);}
+  catch(error){navigator.vibrate?.([70,50,70]);showErrorResult(error,decodedText);}
 }
 async function lookupClient(id){
   const template=window.STOCK_CONFIG?.clientLookupUrl;if(!template)return null;
@@ -49,8 +49,8 @@ function renderClientDetails(client){
   for(const[label,value]of fields){const row=document.createElement("div"),dt=document.createElement("dt"),dd=document.createElement("dd");dt.textContent=label;dd.textContent=String(value);row.append(dt,dd);fragment.append(row);}
   el.clientDetails.append(fragment);el.clientDetails.hidden=false;el.resultMessage.textContent="Client retrouvé dans le stock.";
 }
-function showErrorResult(error){
-  const message=error instanceof Error?error.message:"QR code illisible.";el.cameraPanel.hidden=true;el.result.hidden=false;el.resultIcon.classList.add("error");el.resultIcon.textContent="!";el.resultEyebrow.textContent="Lecture refusée";el.clientId.textContent="QR non valide";el.resultMessage.textContent=message;el.clientDetails.hidden=true;el.clientDetails.replaceChildren();announce(message);
+function showErrorResult(error,rawValue=""){
+  const message=error instanceof Error?error.message:"QR code illisible.";el.cameraPanel.hidden=true;el.result.hidden=false;el.resultIcon.classList.add("error");el.resultIcon.textContent="!";el.resultEyebrow.textContent="Lecture refusée";el.clientId.textContent="QR non valide";el.resultMessage.textContent=rawValue?`${message}\n\nContenu lu : ${JSON.stringify(rawValue)}`:message;el.clientDetails.hidden=true;el.clientDetails.replaceChildren();announce(message);
 }
 async function scanPhoto(file){
   if(!file)return;el.photo.disabled=true;announce("Analyse de la photo.");
