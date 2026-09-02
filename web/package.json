@@ -1,0 +1,6 @@
+{
+  "name": "stock-qr-client",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node --test tests/qr-client.test.mjs" }
+}
