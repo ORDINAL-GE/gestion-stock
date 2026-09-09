@@ -13,9 +13,9 @@
   <title>Stock — Test des clés d’accès</title>
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icon-192.png">
-  <link rel="manifest" href="./manifest.webmanifest?v=20260909-1">
-  <link rel="stylesheet" href="./styles.css?v=20260909-1">
-  <script type="module" src="./app.js?v=20260909-1"></script>
+  <link rel="manifest" href="./manifest.webmanifest?v=20260909-2">
+  <link rel="stylesheet" href="./styles.css?v=20260909-2">
+  <script type="module" src="./app.js?v=20260909-2"></script>
 </head>
 <body>
   <div class="shell">
@@ -26,8 +26,8 @@
     <main id="main">
       <section data-screen="home" aria-labelledby="home-title">
         <p class="eyebrow">LE TEST SUR VOTRE TÉLÉPHONE</p>
-        <h1 id="home-title" tabindex="-1">Votre accès.<br>Sans mot de passe.</h1>
-        <p class="intro">Essayez l’activation, puis la connexion avec une empreinte, votre visage ou le code du téléphone.</p>
+        <h1 id="home-title" tabindex="-1">Activez votre accès.<br>Puis utilisez votre clé.</h1>
+        <p class="intro">Un identifiant et un mot de passe temporaires pour l’activation. Ensuite, votre passkey pour vous reconnecter.</p>
         <div id="profile-status" class="status-card"></div>
         <div class="actions"><button id="start" class="primary">Commencer l’activation</button><button id="login" class="secondary">Se connecter avec une passkey</button></div>
         <p class="small">Une confirmation du téléphone sera demandée. La clé d’essai sera associée à <strong id="domain"></strong>.</p>
@@ -36,11 +36,17 @@
       </section>
       <section data-screen="activate" hidden aria-labelledby="activate-title">
         <p class="eyebrow">01 / ACTIVATION</p><h1 id="activate-title" tabindex="-1">Autoriser le profil test</h1>
-        <ol class="steps"><li>Demande pour <strong>Utilisateur de test</strong></li><li>Approbation par l’administrateur <em>simulée</em></li><li>Création de votre clé d’accès <em>réelle</em></li></ol>
-        <p>Pour cet essai, vous jouez aussi le rôle de l’administrateur. Aucun e-mail n’est envoyé.</p>
-        <button id="approve" class="secondary">Simuler l’approbation</button>
-        <div id="activation-code-box" hidden><p>Code de démonstration, valable 10 minutes :</p><output id="activation-code" class="code"></output><p class="small">Recopiez ce code ci-dessous. Il ne permet aucun accès réel.</p></div>
-        <form id="enroll-form"><label for="code">Code d’activation</label><input id="code" inputmode="numeric" autocomplete="off" maxlength="6" pattern="[0-9]{6}" placeholder="6 chiffres" required><button id="enroll" class="primary" type="submit" disabled>Créer ma passkey de test</button></form>
+        <ol class="steps"><li>Compte autorisé par votre administrateur <em>simulé</em></li><li>Saisie du nom d’utilisateur et du mot de passe temporaire</li><li>Création de votre clé d’accès <em>réelle</em></li></ol>
+        <p>En production, votre administrateur vous remettra les identifiants après avoir vérifié votre demande. Pour ce test, générez ci-dessous les identifiants fictifs. Ne saisissez aucun vrai mot de passe.</p>
+        <p id="replace-notice" class="notice" hidden>Vous avez déjà une fiche de test ici. Elle sera remplacée uniquement si la création de la nouvelle passkey réussit. L’ancienne passkey restera dans votre gestionnaire.</p>
+        <button id="approve" class="secondary">Simuler la création du compte autorisé</button>
+        <div id="demo-credentials" class="panel" hidden><h2>Identifiants de démonstration</h2><p class="small">Valables 10 minutes, pour une seule activation réussie. Ils sont affichés ici uniquement pour l’essai.</p><dl class="demo-credentials"><dt>Nom d’utilisateur</dt><dd><output id="demo-username"></output></dd><dt>Mot de passe temporaire</dt><dd><output id="demo-password"></output></dd></dl></div>
+        <form id="enroll-form" autocomplete="off">
+          <label for="username">Nom d’utilisateur fourni</label><input id="username" name="demo-username" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="80" placeholder="Identifiant de démonstration" required>
+          <label for="password">Mot de passe temporaire fourni</label><div class="password-field"><input id="password" name="demo-password" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="128" placeholder="Mot de passe de démonstration" required><button id="show-password" class="text-button" type="button" aria-controls="password" aria-pressed="false">Afficher</button></div>
+          <button id="enroll" class="primary" type="submit" disabled>Valider mes identifiants et créer ma passkey</button>
+        </form>
+        <p class="small">Si la fenêtre du téléphone est annulée, vous pouvez réessayer avant l’expiration. Après l’enregistrement réussi, le mot de passe temporaire ne sert plus.</p>
         <p class="small">Choisissez votre gestionnaire habituel. Le téléphone crée la clé ; Stock ne reçoit ni votre empreinte, ni votre code de déverrouillage.</p>
       </section>
       <section data-screen="ready" hidden aria-labelledby="ready-title">
@@ -69,7 +75,7 @@
       </section>
       <section data-screen="diagnostic" hidden aria-labelledby="diagnostic-title">
         <p class="eyebrow">COMPTE RENDU DE L’ESSAI</p><h1 id="diagnostic-title" tabindex="-1">Résultats</h1><dl id="capabilities" class="diagnostics"></dl><h2>Derniers événements</h2><ul id="events" class="events"></ul><button id="download-report" class="secondary">Télécharger le compte rendu</button>
-        <p class="small">Le compte rendu contient la version du navigateur et les résultats techniques. Il ne contient ni clé privée, ni clé publique, ni code d’activation.</p>
+        <p class="small">Le compte rendu contient la version du navigateur et les résultats techniques. Il ne contient ni clé privée, ni clé publique, ni mot de passe temporaire. BE indique si la clé est sauvegardable ; BS indique si elle est déclarée sauvegardée. Ces indicateurs ne comptent pas les téléphones et ne prouvent pas l’absence de partage.</p>
         <details><summary>Effacer les données locales de test</summary><p>Cela efface la fiche publique, le journal et la session de ce prototype dans ce navigateur. Les données de Stock sont conservées. La passkey reste dans votre gestionnaire : supprimez « Stock — Prototype » depuis celui-ci si vous n’en avez plus besoin.</p><button id="reset" class="danger">Effacer les données de ce prototype</button></details>
       </section>
     </main>

@@ -6,13 +6,13 @@ Ouvrir `https://ordinal-ge.github.io/gestion-stock/passkeys/` après publication
 
 1. Ouvrir le prototype directement dans Chrome (Android) ou Safari (iPhone).
 2. Pour tester une PWA, ajouter Stock Test à l’écran d’accueil puis ouvrir cette icône.
-3. Commencer l’activation, simuler l’approbation, recopier le code affiché et créer la passkey.
+3. Commencer l’activation, simuler la création du compte autorisé, saisir le nom d’utilisateur et le mot de passe temporaires affichés, puis créer la passkey.
 4. Tester la connexion et accepter la confirmation du gestionnaire de clés.
 5. Fermer la session simulée puis se reconnecter.
 6. Dans « Essayer un autre navigateur », préparer et copier le lien. L’ouvrir dans l’autre environnement, charger la fiche publique et tester la même passkey. La fiche ne copie aucune clé privée : le gestionnaire doit fournir la passkey (ou une authentification croisée).
 7. Télécharger le compte rendu depuis « Résultats et diagnostic ».
 
-Les profils sont fictifs. Le code est affiché sur place et n’est jamais envoyé. Ne saisir aucune information de production.
+Les profils sont fictifs. Les identifiants temporaires fictifs sont affichés sur place et ne sont jamais envoyés. Ils restent uniquement dans la mémoire de la page, expirent après 10 minutes et sont effacés après succès ou navigation. Cinq erreurs bloquent cet essai ; recommencer la simulation renouvelle les identifiants. Ce mécanisme local n’offre aucune protection serveur. Ne saisir aucune information de production.
 
 ## Ce qui est réel
 
@@ -25,7 +25,7 @@ Les profils sont fictifs. Le code est affiché sur place et n’est jamais envoy
 ## Ce qui est simulé (ne pas utiliser en production)
 
 - Base HFSQL remplacée par un objet localStorage, limité à un profil de test par stockage.
-- Approbation et code d’activation locaux, manipulables par l’utilisateur.
+- Approbation, nom d’utilisateur et mot de passe d’activation locaux, manipulables par l’utilisateur. En production, l’administrateur vérifie l’identité, remet les identifiants par un canal vérifié, et le serveur valide un hachage du mot de passe puis le consomme après enrôlement réussi.
 - Session de cinq minutes dans sessionStorage ; aucun cookie HttpOnly et aucune API protégée.
 - Révocation locale, sans effet sur les autres navigateurs. Réinitialiser/importer peut recréer un état autorisé : ce n’est pas un système d’autorisation.
 - Vérifications dans le navigateur, contournables. Une signature valide ici démontre l’interopérabilité, pas une frontière de sécurité serveur.
@@ -45,6 +45,6 @@ L’icône installée peut avoir un stockage distinct selon la plateforme. Impor
 
 Depuis la racine du dépôt : `node --test tests/passkeys/crypto.test.mjs`.
 
-`tests/passkeys/browser.mjs` utilise Playwright et un authentificateur virtuel Chromium pour tester création, signature, erreurs, stockage séparé, session, révocation et navigation. Définir `PLAYWRIGHT_MODULE` et éventuellement `BROWSER_EXE` selon le poste. Cet essai ne remplace pas les tests biométriques iPhone/Android réels.
+`tests/passkeys/browser.mjs` utilise Playwright et un authentificateur virtuel Chromium pour tester création, signature, erreurs, stockage séparé, session, révocation et navigation. Définir `PLAYWRIGHT_MODULE` et éventuellement `BROWSER_EXE` selon le poste. `PROTOTYPE_URL` permet de répéter les essais sur l’adresse publiée. Cet essai ne remplace pas les tests biométriques iPhone/Android réels.
 
 Références : https://www.w3.org/TR/webauthn/ et https://simplewebauthn.dev/docs/packages/server

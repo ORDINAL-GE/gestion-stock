@@ -15,7 +15,7 @@ const server = createServer(async (req, res) => {
   } catch { res.writeHead(404).end(); }
 });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-const url = `http://localhost:${server.address().port}/passkeys/`;
+const url = process.env.PROTOTYPE_URL || `http://localhost:${server.address().port}/passkeys/`;
 const browser = await chromium.launch({ headless: true, ...(process.env.BROWSER_EXE ? { executablePath: process.env.BROWSER_EXE } : {}) });
 let context;
 try {
@@ -25,14 +25,47 @@ try {
   const cdp = await context.newCDPSession(page); await cdp.send('WebAuthn.enable');
   const { authenticatorId } = await cdp.send('WebAuthn.addVirtualAuthenticator', { options: { protocol: 'ctap2', transport: 'internal', hasResidentKey: true, hasUserVerification: true, isUserVerified: true, automaticPresenceSimulation: true } });
   await page.goto(url);
+  await page.clock.install();
   await page.locator('#start').click(); await page.locator('#approve').click();
-  await page.locator('#code').fill('wrong');
-  // Native form constraints are not bypassed in the real flow.
-  const code = await page.locator('#activation-code').textContent();
-  await page.locator('#code').fill(code === '000000' ? '000001' : '000000'); await page.locator('#enroll').click();
-  await page.locator('#message.error').filter({ hasText: 'Code incorrect' }).waitFor();
-  await page.locator('#code').fill(code); await page.locator('#enroll').click();
+  const firstPassword = await page.locator('#demo-password').textContent();
+  await page.locator('#enroll').click();
+  assert.equal((await cdp.send('WebAuthn.getCredentials', { authenticatorId })).credentials.length, 0);
+  await page.locator('#username').fill('wrong-user'); await page.locator('#password').fill(firstPassword);
+  await page.locator('#enroll').click();
+  await page.locator('#message.error').filter({ hasText: 'Identifiant ou mot de passe incorrect' }).waitFor();
+  await page.locator('#username').fill('stock.test'); await page.locator('#password').fill('wrong-password');
+  for (let attempt = 0; attempt < 4; attempt++) await page.locator('#enroll').click();
+  await page.locator('#password').fill(firstPassword); await page.locator('#enroll').click();
+  await page.locator('#message.error').filter({ hasText: 'Cinq essais incorrects' }).waitFor();
+  assert.equal((await cdp.send('WebAuthn.getCredentials', { authenticatorId })).credentials.length, 0);
+  await page.locator('#back').click(); await page.goBack();
+  assert.equal(await page.locator('#username').inputValue(), '');
+  assert.equal(await page.locator('#password').inputValue(), '');
+  assert.equal(await page.locator('#enroll').isDisabled(), true);
+  await page.goForward();
+  await page.locator('#start').click(); await page.locator('#approve').click();
+  await page.locator('#username').fill('stock.test'); await page.locator('#password').fill(await page.locator('#demo-password').textContent());
+  await page.clock.fastForward(600001);
+  await page.locator('#enroll').click();
+  await page.locator('#message.error').filter({ hasText: 'expirés' }).waitFor();
+  await page.locator('#back').click();
+  await page.locator('#start').click(); await page.locator('#approve').click();
+  const password = await page.locator('#demo-password').textContent();
+  await page.locator('#username').fill(await page.locator('#demo-username').textContent());
+  await page.locator('#password').fill(password); await page.locator('#show-password').click();
+  assert.equal(await page.locator('#password').getAttribute('type'), 'text');
+  await page.locator('#show-password').click();
+  assert.equal(await page.locator('#password').getAttribute('type'), 'password');
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  await page.locator('#password').fill('');
+  await page.screenshot({ path: 'tests/passkeys/mobile-activation.png', fullPage: true });
+  await page.locator('#password').fill(password); await page.locator('#enroll').click();
   await page.locator('[data-screen="ready"]:visible').waitFor();
+  assert.equal(await page.locator('#password').inputValue(), '');
+  assert.equal(await page.locator('#username').inputValue(), '');
+  assert.equal(await page.locator('#demo-password').textContent(), '');
+  assert.equal(await page.locator('#enroll').isDisabled(), true);
+  assert.equal(await page.evaluate(secret => JSON.stringify(localStorage).includes(secret) || JSON.stringify(history.state).includes(secret), password), false);
   await page.locator('#first-login').click(); await page.locator('[data-screen="session"]:visible').waitFor();
   await page.locator('#check-session').click(); assert.match(await page.locator('#message').textContent(), /encore valide/);
   await page.reload(); await page.locator('[data-screen="session"]:visible').waitFor();
@@ -70,5 +103,5 @@ try {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.screenshot({ path: 'tests/passkeys/desktop-home.png', fullPage: true });
   assert.deepEqual(errors, []);
-  console.log('Browser PASS: activation, invalid code, real virtual WebAuthn create/get, signature verification, session reload/logout, public transfer to isolated storage, local revocation, back navigation, pending-operation cancellation, mobile layout.');
+  console.log('Browser PASS: temporary username/password, invalid credentials, expiry, lockout, credential clearing, activation, real virtual WebAuthn create/get, signature verification, session reload/logout, public transfer to isolated storage, local revocation, back navigation, pending-operation cancellation, mobile layout.');
 } finally { await context?.close(); await browser.close(); await new Promise(resolve => server.close(resolve)); }
