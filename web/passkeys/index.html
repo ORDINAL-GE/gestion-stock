@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#17352e">
+  <meta name="description" content="Prototype Stock : tester une vraie clé d’accès sur téléphone, avec autorisation et session simulées.">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Stock Test">
+  <title>Stock — Test des clés d’accès</title>
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <link rel="manifest" href="./manifest.webmanifest?v=20260909-1">
+  <link rel="stylesheet" href="./styles.css?v=20260909-1">
+  <script type="module" src="./app.js?v=20260909-1"></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="brand"><img src="./icon.svg" alt="" width="44" height="44"><div><strong>STOCK</strong><span>Essai des clés d’accès</span></div><span class="badge">PROTOTYPE</span></header>
+    <aside class="notice"><strong>Vraie passkey · accès simulé</strong><br>Aucune connexion à HFSQL ni au stock. Utilisez seulement le profil fictif proposé.</aside>
+    <nav class="toolbar"><button id="back" class="text-button" hidden>← Retour</button><span id="mode">Navigation web</span></nav>
+    <div id="message" class="message" role="status" aria-live="polite" hidden></div>
+    <main id="main">
+      <section data-screen="home" aria-labelledby="home-title">
+        <p class="eyebrow">LE TEST SUR VOTRE TÉLÉPHONE</p>
+        <h1 id="home-title" tabindex="-1">Votre accès.<br>Sans mot de passe.</h1>
+        <p class="intro">Essayez l’activation, puis la connexion avec une empreinte, votre visage ou le code du téléphone.</p>
+        <div id="profile-status" class="status-card"></div>
+        <div class="actions"><button id="start" class="primary">Commencer l’activation</button><button id="login" class="secondary">Se connecter avec une passkey</button></div>
+        <p class="small">Une confirmation du téléphone sera demandée. La clé d’essai sera associée à <strong id="domain"></strong>.</p>
+        <div class="list-links"><button data-go="install">Ajouter l’icône sur mon téléphone <span>↗</span></button><button data-go="transfer">Essayer un autre navigateur <span>→</span></button><button data-go="diagnostic">Résultats et diagnostic <span>→</span></button></div>
+        <details><summary>Ce prototype vérifie quoi ?</summary><p>La création d’une vraie passkey et sa signature sont testées. La signature est vérifiée ici, dans le navigateur. Votre serveur devra refaire ces contrôles pour protéger de vraies données.</p><p>L’approbation, la révocation et la session sont des simulations locales. Elles ne sont pas partagées entre navigateurs. Aucun cookie HttpOnly ne peut être créé par ce prototype statique.</p></details>
+      </section>
+      <section data-screen="activate" hidden aria-labelledby="activate-title">
+        <p class="eyebrow">01 / ACTIVATION</p><h1 id="activate-title" tabindex="-1">Autoriser le profil test</h1>
+        <ol class="steps"><li>Demande pour <strong>Utilisateur de test</strong></li><li>Approbation par l’administrateur <em>simulée</em></li><li>Création de votre clé d’accès <em>réelle</em></li></ol>
+        <p>Pour cet essai, vous jouez aussi le rôle de l’administrateur. Aucun e-mail n’est envoyé.</p>
+        <button id="approve" class="secondary">Simuler l’approbation</button>
+        <div id="activation-code-box" hidden><p>Code de démonstration, valable 10 minutes :</p><output id="activation-code" class="code"></output><p class="small">Recopiez ce code ci-dessous. Il ne permet aucun accès réel.</p></div>
+        <form id="enroll-form"><label for="code">Code d’activation</label><input id="code" inputmode="numeric" autocomplete="off" maxlength="6" pattern="[0-9]{6}" placeholder="6 chiffres" required><button id="enroll" class="primary" type="submit" disabled>Créer ma passkey de test</button></form>
+        <p class="small">Choisissez votre gestionnaire habituel. Le téléphone crée la clé ; Stock ne reçoit ni votre empreinte, ni votre code de déverrouillage.</p>
+      </section>
+      <section data-screen="ready" hidden aria-labelledby="ready-title">
+        <div class="success-mark" aria-hidden="true">✓</div><p class="eyebrow">02 / CLÉ ENREGISTRÉE</p><h1 id="ready-title" tabindex="-1">La clé est créée.</h1><p>Passons au test décisif : demander une signature et la vérifier avec votre clé publique.</p>
+        <button id="first-login" class="primary">Tester la connexion</button><button data-go="transfer" class="secondary">Préparer un autre navigateur</button>
+        <p class="small">Seule la fiche publique est enregistrée dans le stockage de ce prototype. La clé privée est gérée par votre téléphone ou votre gestionnaire de clés.</p>
+      </section>
+      <section data-screen="session" hidden aria-labelledby="session-title">
+        <div class="success-mark" aria-hidden="true">✓</div><p class="eyebrow">03 / SIGNATURE VÉRIFIÉE</p><h1 id="session-title" tabindex="-1">Connexion réussie.</h1><p>La signature, le défi, le domaine et la vérification utilisateur ont été contrôlés dans ce navigateur.</p>
+        <div class="status-card"><strong>Session de démonstration</strong><p id="session-status"></p><span class="small">Simulation locale de 5 minutes. Aucun accès au stock.</span></div>
+        <button id="check-session" class="primary">Vérifier la session simulée</button><button id="logout" class="secondary">Fermer la session et retester</button><button data-go="transfer" class="secondary">Essayer dans un autre navigateur</button>
+        <details><summary>Tester une révocation</summary><p>Ce bouton invalide le profil et la session dans ce stockage local seulement. Il ne supprime pas la passkey du téléphone et ne bloque aucun autre navigateur.</p><button id="revoke" class="danger">Révoquer localement le profil test</button></details>
+      </section>
+      <section data-screen="transfer" hidden aria-labelledby="transfer-title">
+        <p class="eyebrow">CHROME, SAFARI OU ICÔNE INSTALLÉE</p><h1 id="transfer-title" tabindex="-1">Tester ailleurs</h1><p>Sans HFSQL, l’autre navigateur ne connaît pas votre clé publique. Transférez sa fiche de test pour qu’il puisse vérifier la signature de la même passkey.</p>
+        <div class="panel"><h2>1. Depuis le premier navigateur</h2><p>Copiez ce lien, puis ouvrez-le dans l’autre navigateur ou envoyez-le à votre appareil de test. Il contient uniquement la fiche publique, jamais la clé privée.</p><button id="make-transfer" class="secondary">Préparer le lien de test</button><label for="export-link">Lien contenant la fiche publique</label><textarea id="export-link" rows="3" readonly placeholder="Créez d’abord une passkey ou importez sa fiche."></textarea><button id="copy-transfer" class="text-button">Copier le lien</button></div>
+        <div class="panel"><h2>2. Dans l’autre navigateur</h2><p>Si le lien a ouvert cette page, sa fiche est déjà proposée ci-dessous. Sinon, collez le lien.</p><label for="import-data">Lien ou fiche publique JSON</label><textarea id="import-data" rows="3" placeholder="Collez ici le lien de test"></textarea><button id="import-profile" class="primary">Charger la fiche publique</button><button id="transfer-login" class="secondary">Tester la même passkey</button></div>
+        <p class="small">Importer la fiche ne copie pas la passkey. Votre gestionnaire doit la rendre accessible, ou proposer l’utilisation d’un autre appareil. Dans la vraie application, HFSQL fournira automatiquement la clé publique.</p>
+      </section>
+      <section data-screen="install" hidden aria-labelledby="install-title">
+        <p class="eyebrow">UN POINT D’ENTRÉE SUR LE TÉLÉPHONE</p><h1 id="install-title" tabindex="-1">L’icône Stock Test</h1><p>Pour tester l’installation, ajoutez l’icône puis ouvrez-la avant de créer votre première clé.</p>
+        <button id="install-button" class="primary" hidden>Installer Stock Test</button>
+        <div class="panel"><h2>Android · Chrome</h2><p>Ouvrez le menu ⋮, puis <strong>Ajouter à l’écran d’accueil</strong> ou <strong>Installer l’application</strong>. Le libellé dépend de votre version.</p></div>
+        <div class="panel"><h2>iPhone · Safari</h2><p>Ouvrez le menu de partage, puis <strong>Sur l’écran d’accueil</strong>. Si l’option est proposée, activez l’ouverture en application web. Ajoutez l’icône, puis ouvrez-la.</p></div>
+        <p>Si vous avez déjà créé une clé, utilisez « Essayer un autre navigateur » pour transférer sa fiche publique dans l’icône installée.</p><button data-go="home" class="secondary">Revenir au test</button>
+      </section>
+      <section data-screen="diagnostic" hidden aria-labelledby="diagnostic-title">
+        <p class="eyebrow">COMPTE RENDU DE L’ESSAI</p><h1 id="diagnostic-title" tabindex="-1">Résultats</h1><dl id="capabilities" class="diagnostics"></dl><h2>Derniers événements</h2><ul id="events" class="events"></ul><button id="download-report" class="secondary">Télécharger le compte rendu</button>
+        <p class="small">Le compte rendu contient la version du navigateur et les résultats techniques. Il ne contient ni clé privée, ni clé publique, ni code d’activation.</p>
+        <details><summary>Effacer les données locales de test</summary><p>Cela efface la fiche publique, le journal et la session de ce prototype dans ce navigateur. Les données de Stock sont conservées. La passkey reste dans votre gestionnaire : supprimez « Stock — Prototype » depuis celui-ci si vous n’en avez plus besoin.</p><button id="reset" class="danger">Effacer les données de ce prototype</button></details>
+      </section>
+    </main>
+    <footer>Essai indépendant de Stock · <span id="version"></span><br><a href="../">Ouvrir le site Stock existant</a></footer>
+  </div>
+  <noscript>Activez JavaScript pour utiliser ce prototype WebAuthn.</noscript>
+</body>
+</html>
