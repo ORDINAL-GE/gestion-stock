@@ -1,5 +1,5 @@
 // Browser-only feasibility harness. These checks are NOT a server trust boundary.
-export const VERSION = '20260909-2';
+export const VERSION = '20260909-3';
 export const bytes = value => value instanceof Uint8Array ? value : new Uint8Array(value);
 export function encode(value) {
   return btoa(String.fromCharCode(...bytes(value))).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');

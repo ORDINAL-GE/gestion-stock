@@ -13,9 +13,9 @@
   <title>Stock — Test des clés d’accès</title>
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icon-192.png">
-  <link rel="manifest" href="./manifest.webmanifest?v=20260909-2">
-  <link rel="stylesheet" href="./styles.css?v=20260909-2">
-  <script type="module" src="./app.js?v=20260909-2"></script>
+  <link rel="manifest" href="./manifest.webmanifest?v=20260909-3">
+  <link rel="stylesheet" href="./styles.css?v=20260909-3">
+  <script type="module" src="./app.js?v=20260909-3"></script>
 </head>
 <body>
   <div class="shell">
@@ -41,13 +41,24 @@
         <p id="replace-notice" class="notice" hidden>Vous avez déjà une fiche de test ici. Elle sera remplacée uniquement si la création de la nouvelle passkey réussit. L’ancienne passkey restera dans votre gestionnaire.</p>
         <button id="approve" class="secondary">Simuler la création du compte autorisé</button>
         <div id="demo-credentials" class="panel" hidden><h2>Identifiants de démonstration</h2><p class="small">Valables 10 minutes, pour une seule activation réussie. Ils sont affichés ici uniquement pour l’essai.</p><dl class="demo-credentials"><dt>Nom d’utilisateur</dt><dd><output id="demo-username"></output></dd><dt>Mot de passe temporaire</dt><dd><output id="demo-password"></output></dd></dl></div>
-        <form id="enroll-form" autocomplete="off">
+        <form id="enroll-form" autocomplete="off" novalidate>
           <label for="username">Nom d’utilisateur fourni</label><input id="username" name="demo-username" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="80" placeholder="Identifiant de démonstration" required>
           <label for="password">Mot de passe temporaire fourni</label><div class="password-field"><input id="password" name="demo-password" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="128" placeholder="Mot de passe de démonstration" required><button id="show-password" class="text-button" type="button" aria-controls="password" aria-pressed="false">Afficher</button></div>
-          <button id="enroll" class="primary" type="submit" disabled>Valider mes identifiants et créer ma passkey</button>
+          <div id="activation-message" class="message" role="status" aria-live="polite" hidden></div>
+          <button id="enroll" class="primary" type="submit">Valider mes identifiants</button>
         </form>
         <p class="small">Si la fenêtre du téléphone est annulée, vous pouvez réessayer avant l’expiration. Après l’enregistrement réussi, le mot de passe temporaire ne sert plus.</p>
         <p class="small">Choisissez votre gestionnaire habituel. Le téléphone crée la clé ; Stock ne reçoit ni votre empreinte, ni votre code de déverrouillage.</p>
+      </section>
+      <section data-screen="create" hidden aria-labelledby="create-title">
+        <div class="success-mark" aria-hidden="true">✓</div>
+        <p class="eyebrow">IDENTIFIANTS ACCEPTÉS</p><h1 id="create-title" tabindex="-1">Créez votre clé d’accès</h1>
+        <p>La saisie est validée. Appuyez sur le bouton ci-dessous pour ouvrir la demande de votre téléphone.</p>
+        <div id="create-message" class="message" role="status" aria-live="polite" hidden></div>
+        <button id="create-passkey" class="primary" type="button">Créer ma passkey</button>
+        <button id="cancel-passkey" class="secondary" type="button" hidden>Annuler la demande en cours</button>
+        <p class="small">Sur iPhone, Safari peut proposer « Enregistrer une clé d’accès ». Confirmez avec Face ID, Touch ID ou le code du téléphone.</p>
+        <details><summary>La fenêtre du téléphone ne s’ouvre pas ?</summary><p>Vérifiez que vous avez ouvert ce lien directement dans Safari, que votre iPhone possède un code de verrouillage et qu’un gestionnaire de clés d’accès est configuré. Pour le gestionnaire Apple, le trousseau iCloud doit être activé. Si la demande reste en attente, annulez-la puis réessayez.</p><p>L’erreur éventuelle apparaît juste au-dessus du bouton. Elle est aussi enregistrée dans le diagnostic.</p></details>
       </section>
       <section data-screen="ready" hidden aria-labelledby="ready-title">
         <div class="success-mark" aria-hidden="true">✓</div><p class="eyebrow">02 / CLÉ ENREGISTRÉE</p><h1 id="ready-title" tabindex="-1">La clé est créée.</h1><p>Passons au test décisif : demander une signature et la vérifier avec votre clé publique.</p>

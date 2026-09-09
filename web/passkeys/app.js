@@ -1,4 +1,4 @@
-import { VERSION, bytes, encode, decode, random, hash, same, Challenge, checkClientData, checkAuthenticatorData, validateProfile, verifyAssertion, errorMessage } from './crypto.js?v=20260909-2';
+import { VERSION, bytes, encode, decode, random, hash, same, Challenge, checkClientData, checkAuthenticatorData, validateProfile, verifyAssertion, errorMessage } from './crypto.js?v=20260909-3';
 
 const $ = id => document.getElementById(id);
 const DB_KEY = 'stock.passkey-prototype.v1';
@@ -7,7 +7,7 @@ const rpId = location.hostname;
 const origin = location.origin;
 const baseUrl = new URL('./', location.href);
 baseUrl.hash = ''; baseUrl.search = '';
-const screens = new Set(['home', 'activate', 'ready', 'session', 'transfer', 'install', 'diagnostic']);
+const screens = new Set(['home', 'activate', 'create', 'ready', 'session', 'transfer', 'install', 'diagnostic']);
 let database = { profile: null, revoked: false, events: [] };
 let storageOK = true;
 let view = 'home';
@@ -38,8 +38,12 @@ function record(action, result) {
   database.events = database.events.slice(-40); save();
 }
 function tell(message, error = false) {
-  $('message').textContent = message;
-  $('message').classList.toggle('error', error); $('message').hidden = !message;
+  const target = view === 'activate' ? $('activation-message') : view === 'create' ? $('create-message') : $('message');
+  for (const node of [$('message'), $('activation-message'), $('create-message')]) {
+    node.textContent = ''; node.hidden = true;
+  }
+  target.textContent = message; target.classList.toggle('error', error); target.hidden = !message;
+  if (message) target.scrollIntoView({ block: 'nearest' });
 }
 function clearSession() { try { sessionStorage.removeItem(SESSION_KEY); } catch {} }
 function session() {
@@ -53,7 +57,9 @@ function stopOperation() {
   generation++;
   if (operation) { operation.abort(); operation = null; }
   document.querySelectorAll('[data-busy]').forEach(el => { el.disabled = false; delete el.dataset.busy; });
-  $('enroll').disabled = !activation || activation.used;
+  $('enroll').disabled = false;
+  $('create-passkey').disabled = !activation?.verified;
+  $('cancel-passkey').hidden = true;
 }
 function displayMode() { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true ? 'Application installée' : 'Navigation web'; }
 function render() {
@@ -75,7 +81,9 @@ function render() {
   $('demo-username').textContent = activation?.username || '';
   $('demo-password').textContent = activation?.password || '';
   $('replace-notice').hidden = !p;
-  $('enroll').disabled = !activation || activation.used || !!operation || !storageOK;
+  $('enroll').disabled = !!operation;
+  $('create-passkey').disabled = !activation?.verified || !!operation;
+  $('cancel-passkey').hidden = !operation || view !== 'create';
   $('make-transfer').disabled = !p;
   $('copy-transfer').disabled = !$('export-link').value;
   $('session-status').textContent = session() ? `Valide jusqu’à ${new Date(session().expires).toLocaleTimeString('fr-FR')}.` : 'Session expirée ou absente : reconnectez-vous.';
@@ -86,7 +94,8 @@ function go(target, replace = false) {
   stopOperation();
   if (target === 'session' && !session()) target = 'home';
   if (target === 'ready' && (!database.profile || database.revoked)) target = 'home';
-  if (target !== 'activate') clearActivation();
+  if (target === 'create' && (!activation?.verified || activation.used || activation.expires <= Date.now())) target = 'activate';
+  if (target !== 'activate' && target !== 'create') clearActivation();
   tell(''); view = target;
   const state = { stockPasskeyPrototype: true, screen: view };
   history[replace ? 'replaceState' : 'pushState'](state, '', '#' + view);
@@ -98,13 +107,18 @@ window.addEventListener('popstate', () => {
   stopOperation(); clearActivation(); tell('');
   view = screens.has(history.state?.screen) ? history.state.screen : 'home';
   if (view === 'session' && !session()) view = 'home';
+  if (view === 'create') { view = 'activate'; history.replaceState({ stockPasskeyPrototype: true, screen: view }, '', '#activate'); }
   render();
 });
 // Native credential UI may temporarily hide a page. Allow it to finish, but never
 // commit a result after pagehide/history navigation or an ordinary hidden-page transition.
 document.addEventListener('visibilitychange', () => { if (document.hidden && !operation) stopOperation(); });
 window.addEventListener('pagehide', () => { stopOperation(); clearActivation(); });
-window.addEventListener('pageshow', () => { if (view === 'session' && !session()) go('home', true); else render(); });
+window.addEventListener('pageshow', () => {
+  if (view === 'session' && !session()) go('home', true);
+  else if (view === 'create' && !activation?.verified) { go('activate', true); tell('L’activation a été interrompue en quittant la page. Générez de nouveaux identifiants de démonstration.'); }
+  else render();
+});
 window.addEventListener('storage', event => {
   if (event.key === DB_KEY || event.key === null) {
     stopOperation();
@@ -122,6 +136,7 @@ function begin(button) {
   tell('Confirmez dans la fenêtre du téléphone. Le test peut attendre jusqu’à 90 secondes.');
   const controller = new AbortController(); operation = controller;
   button.disabled = true; button.dataset.busy = 'true';
+  $('cancel-passkey').hidden = view !== 'create';
   return { controller, current: generation, button };
 }
 function stillCurrent(ctx) { return generation === ctx.current && !ctx.controller.signal.aborted && operation === ctx.controller; }
@@ -152,16 +167,30 @@ $('approve').onclick = () => {
     record('Approbation', 'Compte fictif approuvé localement. Identifiant et mot de passe temporaires créés.'); render(); $('username').focus();
   } catch (error) { fail('Approbation', error); }
 };
-$('enroll-form').onsubmit = async event => {
-  event.preventDefault(); let ctx;
+$('enroll-form').onsubmit = event => {
+  event.preventDefault();
   try {
     if (operation) return;
-    if (!activation || activation.used || activation.expires <= Date.now()) throw new Error('Identifiants temporaires absents, expirés ou déjà utilisés. Revenez à l’accueil pour recommencer.');
+    if (!activation) throw new Error('Appuyez d’abord sur « Simuler la création du compte autorisé », puis recopiez les identifiants affichés.');
+    if (activation.used || activation.expires <= Date.now()) throw new Error('Identifiants temporaires expirés ou déjà utilisés. Revenez à l’accueil pour recommencer.');
+    if (!$('username').value.trim() || !$('password').value) throw new Error('Saisissez le nom d’utilisateur et le mot de passe de démonstration affichés au-dessus.');
     if (activation.attempts >= 5) throw new Error('Cinq essais incorrects. Revenez à l’accueil pour recommencer l’activation simulée.');
     if ($('username').value.trim() !== activation.username || $('password').value !== activation.password) { activation.attempts++; throw new Error('Identifiant ou mot de passe incorrect. Recopiez les identifiants de démonstration affichés, en respectant les majuscules et les tirets.'); }
-    ctx = begin($('enroll')); if (!ctx) return;
+    activation.verified = true;
+    activation.password = ''; $('password').value = ''; $('username').value = '';
+    $('password').type = 'password';
+    record('Identifiants', 'Identifiants temporaires acceptés. Création de la passkey à confirmer.');
+    go('create');
+  } catch (error) { fail('Validation des identifiants', error); }
+};
+$('create-passkey').addEventListener('click', async () => {
+  let ctx;
+  try {
+    if (operation) return;
+    if (!activation?.verified || activation.used || activation.expires <= Date.now()) throw new Error('Activation expirée. Revenez à l’accueil pour recommencer.');
+    ctx = begin($('create-passkey')); if (!ctx) return;
     const challenge = new Challenge('create'); const userHandle = random();
-    // Invoke directly within the submit user gesture, before any async work.
+    // Native click, no form submission, promise or timer before WebAuthn (Safari).
     const credential = await navigator.credentials.create({ signal: ctx.controller.signal, publicKey: {
       challenge: challenge.value, rp: { id: rpId, name: 'Stock — Prototype' },
       user: { id: userHandle, name: activation.username + '-' + encode(userHandle).slice(0, 6), displayName: 'Utilisateur de test — Stock' },
@@ -187,7 +216,8 @@ $('enroll-form').onsubmit = async event => {
     go('ready', true);
   } catch (error) { fail('Création de passkey', error, ctx); }
   finally { finish(ctx); }
-};
+});
+$('cancel-passkey').onclick = () => { stopOperation(); render(); tell('Demande interrompue. Appuyez sur « Créer ma passkey » pour réessayer.'); };
 
 $('show-password').onclick = () => {
   const visible = $('password').type === 'password';

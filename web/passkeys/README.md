@@ -6,7 +6,7 @@ Ouvrir `https://ordinal-ge.github.io/gestion-stock/passkeys/` après publication
 
 1. Ouvrir le prototype directement dans Chrome (Android) ou Safari (iPhone).
 2. Pour tester une PWA, ajouter Stock Test à l’écran d’accueil puis ouvrir cette icône.
-3. Commencer l’activation, simuler la création du compte autorisé, saisir le nom d’utilisateur et le mot de passe temporaires affichés, puis créer la passkey.
+3. Commencer l’activation, simuler la création du compte autorisé, saisir le nom d’utilisateur et le mot de passe temporaires affichés, puis valider les identifiants. L’écran « Identifiants acceptés » s’ouvre ; appuyer ensuite sur « Créer ma passkey » (clic natif séparé pour Safari).
 4. Tester la connexion et accepter la confirmation du gestionnaire de clés.
 5. Fermer la session simulée puis se reconnecter.
 6. Dans « Essayer un autre navigateur », préparer et copier le lien. L’ouvrir dans l’autre environnement, charger la fiche publique et tester la même passkey. La fiche ne copie aucune clé privée : le gestionnaire doit fournir la passkey (ou une authentification croisée).
